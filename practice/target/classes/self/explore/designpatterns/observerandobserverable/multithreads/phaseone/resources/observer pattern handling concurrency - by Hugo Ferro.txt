@@ -1,0 +1,171 @@
+		
+		Hello everyone, my name is Hugo Ferro.
+
+		Today I will talk about how we should handle concurrency when using the Observer Pattern.
+
+		I hope you like :)
+
+		
+		
+		(!) Attention: This topic is not a simple one. If you are new to programming or if you aren't very familiar with
+		
+		multithreading I think that it will be difficult to you understand what I'm talking about...
+
+		However I will try to explain in a simple way. I hope that at least in the end you'll be able to see 
+
+		that you must be very careful with this subject!
+
+				
+		So...let's get started!!!
+
+		It is very common that in the Observer Pattern the Subject (Publisher) is accessed concurrently...in other words 
+
+		it's perfectly normal that several threads may call methods of the Publisher (registering as interested in whether a given
+
+		event happened or removing his registration) at "the same time". 
+
+		The problem arises when we try to insert, remove or even iterate the list or hashset where we have our observers...
+
+		...and this container (list or hashset of observers) is indirectly shared between threads.
+			
+
+		Methods that can be accessed concurrently:
+
+		1) registerObserver --> You add an observer to the subscribers hashset
+
+		2) unregisterObserver --> You remove an observer from the same hashset
+
+		3) notifyObserver --> You iterate that hashset to notify every observer
+
+		
+		We have to protect them! We have to ensure that the last three methods are accessed by only one thread at a time.
+
+
+ - ObserverPatternSimple_MT_1
+
+
+		So, to solve this problem you just add the word "synchronized" on the method's signature!
+
+// 1)  Using the "this" object's monitor
+
+		
+		
+		And this is it...
+
+			Nooooooooooooooooooooo! Unfortunately that's not all! 
+
+		I see people doing it all the time...and in fact we solved our main concurrency problem!!! 
+
+		But we opened a window to several other problems!
+
+		
+		The synchronized on our method's signature is a short hand for synchronized(this), which means that we are using
+
+		the monitor of the "this" object to help keeping the hashset "safe"!
+
+		In Java, every object can have a monitor...it is only created when you use "synchronized(yourObject)"...
+
+		So...if we use the "this" object's monitor...and we expose the "this" object to others...
+
+		What you think that will happen when some day some guy decide to use our subject object on some synchronization routine?!
+
+		Did you get it?
+
+		An example!
+
+		Imagin that one thread will use the subject to register his interest...
+
+		And another thread use the same object in a synchronized statement...
+
+		I put a break point inside the synchronized block...
+
+		And nothing happened... the other thread doesn't registered him self yet!
+
+		I go forward and leave the synchronized block...
+
+		The other thread registered successfuly!!!
+
+		
+		To solve this problem you should use a private object to use on the synchronized statement!
+
+// 2) Using a private object's monitor!
+
+		
+		Running the previous example again... as you can see even when I'm inside the synchronized block the other thread can
+
+		register himself.
+
+
+		
+		So...now we solved this problem but there is another one!
+
+ - 1_Notifying On Locks Possession  <-- The problem! 
+
+		The problem is on the NotifyObservers method of the Subject! What we are doing here is called an Open Call...
+
+		In other words, we are calling a method of other object in the possession of the lock! We don't know how it was 
+
+		implemented and if the execution of that method will be slow or fast! Which means that while one thread 
+
+		is notifiyng the observers, no one can register/unregister or notify again!
+
+		To solve this problem we must notify all objects outside the synchronized block...so no one will have to wait that 
+
+		all notifications are finished.
+
+		In the same time...we have to protect our list of Observers! 
+
+
+ - ObserverPatternSimple_MT_2
+
+
+		To do this:
+
+			1) Inside the synchronized block we copy the hashset of observers;
+
+			2) Outside the synchronized block we notify all observers already registered in the hashset when we did the copy.
+
+		Now we can register/unregister or notify again without getting stuck in the synchronized block indefinitely allowing
+
+		other threads to continue their work!
+
+
+
+ - 2_Busy In Foreach   <-- The problem!
+		
+		We have one last problem to solve in the Subject class!
+
+		We prevent that other threads have to wait indefinitely to get his job done...but we forget that current thread,
+
+		the thread that invoked NotifyObservers still be trapped on a foreach that we don't know how much time will spend!
+
+
+ - 3_Delegate the job to another thread --> Solution!!
+		
+		So, finally to solve this last one we delegate the job to another thread!! So that last one can go and continue his job!
+
+ - ObserverPatternSimple_MT_3
+
+
+
+		Now we have to solve another problems but it will be in the Observer's class...I will cover this on another video!		
+
+
+			And this is it...
+
+				I Hope that it was useful for you
+
+						Thank you for watching :)
+
+
+
+
+
+	
+
+
+	
+
+	
+
+	

@@ -1,0 +1,119 @@
+		
+		Hello everyone, my name is Hugo Ferro.
+
+		Today I will talk about how we should handle concurrency when using the Observer Pattern.
+
+		I hope you like :)
+
+		
+		In my last video called "Observer Design Pattern Handling Multithreading part 1 of 2 - Example using Java". 
+
+		I mentioned that we still have a problem to solve in class Observer!		
+
+		So...what is it?!
+
+			First we delegated the job to another thread!
+
+			Second, this new thread will call for each observer his method Update(String message).
+
+		...And at this point everything is OK!
+
+						
+		The subject only knows that the observer implements an Interface called IObserver...
+
+		(!) He don't know, how the observer implements that Interface!!!!
+
+			...Imagine this situation! 
+
+		As you can see...there is an observer who has a significant delay on performing the Update operation!
+
+			Peter -> takes 10 seconds to perform the Update method!
+
+		
+		Let's see this in action!
+
+		1) I have created another class that implements IObserver - ObserverThatTake10seconds
+
+		2) I create 4 observers,
+
+			John, Mary and Jeff as Observer
+				and
+			Peter as ObserverThatTake10seconds
+
+		3) I Subscribe all of them to the radio, our Subject now!
+
+		4) We notify observers of some news.
+
+		Let's see how it behaves!
+
+	
+		Wooow strange!!!
+
+		1) John received all the messages...but in a strange order
+
+		2) After 10 seconds Peter, Mary and Jeff received all the messages...unordered too...
+
+			...But wait!
+
+				We have 3 messages...and Peter takes 10 seconds to display one...because we put Peter on Sleep...
+
+				...But the program only taked 10 seconds to the end...it should have taken 30 seconds!
+
+			Why?
+
+			Let's see a picture of the timeline.
+
+			
+			OK...enough talk...lets solve this! 
+
+
+			1) We have to change a little bit our Subject class - to guarantee order on delivering messages.
+			
+				The idea is to confine the delivery of messages to one thread only.
+
+				To do that we put every message on a List...and then another thread will get the messages
+	
+				and will deliver to observers.
+
+			2) We apply a template method pattern on Observers - to guarantee that the reception of messages 
+
+			takes the less time possible.
+
+				The idea is to confine the reception of messages to one thread only.
+
+				When the UpdateTemplateMethod method is called...the message is added to a list of messages.
+
+				Then..another thread will get this messages on the list and will call the Update method.
+
+
+			Did you get it? 			
+
+			
+			Note: Remember one thing, when we use a template method, who will extend this class will not be aware of 
+
+				what is happening on the template method!
+
+			
+
+			Running the example. 
+
+
+
+			And this is it...
+
+				I Hope that it was useful for you
+
+						Thanks you for watching :)
+
+
+
+
+
+	
+
+
+	
+
+	
+
+	

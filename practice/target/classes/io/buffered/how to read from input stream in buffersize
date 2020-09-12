@@ -1,0 +1,26 @@
+The final call to achieve super.read(buf, count, bufferSize) is in InputStream. 
+The code is£º
+   public int read(byte[] b, int off, int len) throws IOException
+   {
+     if (off < 0 || len < 0 || b.length - off < len)
+       throw new IndexOutOfBoundsException();
+ 
+      int i, ch;
+ 
+      for (i = 0; i < len; ++i)
+       try
+     {
+        if ((ch = read()) < 0)
+         return i == 0 ? -1 : i;        // EOF
+       b[off + i] = (byte) ch;
+     }
+       catch (IOException ex)
+     {
+       // Only reading the first byte should cause an IOException.
+       if (i == 0)
+         throw ex;
+       return i;
+     }
+ 
+     return i;
+   }
